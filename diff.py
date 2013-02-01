@@ -62,30 +62,42 @@ class StringDiffer(Base):
     highlight_start = '<'
     highlight_end = '>'
 
+    @classmethod
+    def _highlight(self, string):
+        return ''.join(
+            [
+                self.highlight_start,
+                string,
+                self.highlight_end
+            ]
+        )
+
     def __init__(self, a, b):
         super(StringDiffer, self).__init__(a, b)
-        self.matches = sorted(
+        self._matches = sorted(
             SequenceMatcher(
                 a=self.a,
                 b=self.b
             ).get_matching_blocks(),
             key=lambda m: m.a
         )
-        self.matches = filter(lambda x: x.size > 0, self.matches)
+        self._matches = filter(lambda x: x.size > 0, self._matches)
+        self.diff_string_lists = self._build_diff_string_lists()
 
     @property
     def output(self):
-        return ''.join(self.get_diff_string_lists()[0])
+        return self.diff_strings[0]
 
-    def get_diff_strings(self):
-        return map(''.join, get_diff_string_lists())
+    @property
+    def diff_strings(self):
+        return map(''.join, self.diff_string_lists)
 
-    def get_diff_string_lists(self):
+    def _build_diff_string_lists(self):
         a_diff_strings = []
         b_diff_strings = []
         a_last_end = 0
         b_last_end = 0
-        for match in self.matches:
+        for match in self._matches:
             a_diff_strings.append(self.a[a_last_end:match.a])
             a_last_end = match.a + match.size
             a_diff_strings.append(self.a[match.a:a_last_end])
@@ -95,13 +107,13 @@ class StringDiffer(Base):
             b_diff_strings.append(self.b[match.b:b_last_end])
 
         try:
-            first_match = self.matches[0]
+            first_match = self._matches[0]
         except IndexError:
             starts_with_match = False
             ends_with_match = False
         else:
             starts_with_match = first_match.a == 0 and first_match.b == 0
-            last_match = self.matches[-1]
+            last_match = self._matches[-1]
             ends_with_match = a_last_end == len(self.a) and b_last_end == len(self.b)
 
         if not ends_with_match:
@@ -117,16 +129,6 @@ class StringDiffer(Base):
             b_diff_strings = b_diff_strings[1:]
 
         return a_diff_strings, b_diff_strings
-
-    @classmethod
-    def _highlight(self, string):
-        return ''.join(
-            [
-                self.highlight_start,
-                string,
-                self.highlight_end
-            ]
-        )
 
 
 class UnicodeDiffer(Base):

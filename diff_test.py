@@ -58,91 +58,101 @@ class LongDifferAcceptanceTestCase(unittest.TestCase):
 
 class StringAcceptanceTestCase(unittest.TestCase):
 
-    def test_string_diff(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is the new string')
+    def assert_diff_strings_are(self, a, b, expected_a_diff_string, expected_b_diff_string):
+        string_differ = diff.StringDiffer(a, b)
+        a_diff_string, b_diff_string = string_differ.diff_strings
+        self.assertEqual(a_diff_string, expected_a_diff_string)
+        self.assertEqual(b_diff_string, expected_b_diff_string)
 
-        self.assertEqual('this is the <old> string', string_diff.output)
+    def test_string_diff(self):
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is the new string',
+            'this is the <old> string', 'this is the <new> string'
+        )
 
     def test_string_diff_beginning(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'kess is the old string')
-
-        self.assertEqual('<thi>s is the old string', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is the old string', 'kess is the old string',
+            '<thi>s is the old string', '<kes>s is the old string'
+        )
 
     def test_string_diff_end(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is the old strina')
-
-        self.assertEqual('this is the old strin<g>', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is the old strina',
+            'this is the old strin<g>', 'this is the old strin<a>'
+        )
 
     def test_string_same(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is the old string')
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is the old string',
+            'this is the old string', 'this is the old string'
+        )
 
-        self.assertEqual('this is the old string', string_diff.output)
+    def test_potential_duplicated_matching(self):
+        self.assert_diff_strings_are(
+            'matchematcher', 'matcher',
+            '<matche>matcher', '<>matcher'
+        )
+        self.assert_diff_strings_are(
+            'karsbarscars', 'iarsoarspars',
+            '<k>ars<b>ars<c>ars', '<i>ars<o>ars<p>ars'
+        )
+        self.assert_diff_strings_are(
+            'marscarsbars', 'carsbarsmars',
+            '<mars>carsbars<>', '<>carsbars<mars>'
+        )
+
+    def test_always_takes_longer_match(self):
+        # difflib will always prefer the longest available matches
+        # not necessarily those that produce the smallest diffs.
+        self.assert_diff_strings_are(
+            'marscarsbars', 'marsbarscars',
+            'm<>arscars<bars>', 'm<arsb>arscars<>'
+        )
 
     def test_string_diff_len(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is the old')
-
-        self.assertEqual('this is the old< string>', string_diff.output)
-
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is the old strings')
-
-        self.assertEqual('this is the old string<>', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is the old',
+            'this is the old< string>', 'this is the old<>'
+        )
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is the old strings',
+            'this is the old string<>', 'this is the old string<s>'
+        )
 
     def test_string_newline(self):
-        string_diff = diff.StringDiffer('this is \nthe old string',
-                                        'this is the old string')
-
-        self.assertEqual('this is <\n>the old string', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is \nthe old string', 'this is the old string',
+            'this is <\n>the old string', 'this is <>the old string'
+        )
 
     def test_string_multiple_diff(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this old the is string')
-
-        self.assertEqual('this <is> the <old> string', string_diff.output)
-
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this new the is string')
-
-        self.assertEqual('this <is> the <old> string', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is the old string', 'this old the is string',
+            'this <is> the <old> string', 'this <old> the <is> string'
+        )
 
     def test_string_long_diff(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is abcdefg old string')
-
-        self.assertEqual('this is <the> old string', string_diff.output)
-
-    def test_string_long_diff(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is abcdfg old string')
-
-        self.assertEqual('this is <the> old string', string_diff.output)
-
-    def test_string_long_diff(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is abcdefg old string')
-
-        self.assertEqual('this is <th>e<> old string', string_diff.output)
-
-    def test_string_word_diff(self):
-        string_diff = diff.StringDiffer('this is the old string',
-                                        'this is abcd-fg old string')
-
-        self.assertEqual('this is <the> old string', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is abcd-fg old string',
+            'this is <the> old string', 'this is <abcd-fg> old string'
+        )
+        self.assert_diff_strings_are(
+            'this is the old string', 'this is abcdefg old string',
+            'this is <th>e<> old string', 'this is <abcd>e<fg> old string'
+        )
 
     def test_string_empty(self):
-        string_diff = diff.StringDiffer('this is the old string', '')
-        self.assertEqual('<this is the old string>', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is the old string', '',
+            '<this is the old string>', '<>'
+        )
 
     def test_string_contains_highlight_markers(self):
-        string_diff = diff.StringDiffer('this is >< old string',
-                                        'this is the old string')
-
-        self.assertEqual('this is <><> old string', string_diff.output)
+        self.assert_diff_strings_are(
+            'this is >< old string', 'this is the old string',
+            'this is <><> old string', 'this is <the> old string'
+        )
 
 
 if __name__ == '__main__':
