@@ -68,6 +68,9 @@ class StringDiffer(Base):
     def output(self):
         return ''.join(self.get_diff_string_lists()[0])
 
+    def get_diff_strings(self):
+        return map(''.join, get_diff_string_lists())
+
     def get_diff_string_lists(self):
         a_diff_strings = []
         b_diff_strings = []

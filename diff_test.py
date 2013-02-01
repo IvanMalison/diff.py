@@ -138,6 +138,5 @@ class StringAcceptanceTestCase(unittest.TestCase):
         self.assertEqual('this is <><> old string', string_diff.output)
 
 
-
 if __name__ == '__main__':
     unittest.main()
