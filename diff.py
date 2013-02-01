@@ -31,6 +31,9 @@ class BooleanDiffer(Base):
 
 class IntegerDiffer(Base):
 
+    def __init__(self, old, new):
+        super(IntegerDiffer, self).__init__(str(old), str(new))
+
     @property
     def output(self):
         return StringDiffer(str(self.a), str(self.b)).output
@@ -40,8 +43,14 @@ class FloatDiffer(IntegerDiffer):
     pass
 
 
-class LongDiffer(Base):
-    pass
+class LongDiffer(IntegerDiffer):
+
+    def __init__(self, old, new):
+        super(LongDiffer, self).__init__(old, new)
+
+    @property
+    def output(self):
+        return super(LongDiffer, self).output + 'L'
 
 
 class ComplexDiffer(Base):
