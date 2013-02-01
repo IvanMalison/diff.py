@@ -39,7 +39,7 @@ class IntegerDifferAcceptanceTestCase(unittest.TestCase):
         self.assertEqual('123456<7890>', integer_diff.output)
 
         integer_diff = diff.IntegerDiffer(123456, 1234567890)
-        self.assertEqual('123456', integer_diff.output)
+        self.assertEqual('123456<>', integer_diff.output)
 
 
 class FloatDifferAcceptanceTestCase(unittest.TestCase):
@@ -59,7 +59,7 @@ class StringAcceptanceTestCase(unittest.TestCase):
 
     def test_string_diff_beginning(self):
         string_diff = diff.StringDiffer('this is the old string',
-                                        'kiss is the old string')
+                                        'kess is the old string')
 
         self.assertEqual('<thi>s is the old string', string_diff.output)
 
@@ -84,7 +84,7 @@ class StringAcceptanceTestCase(unittest.TestCase):
         string_diff = diff.StringDiffer('this is the old string',
                                         'this is the old strings')
 
-        self.assertEqual('this is the old string', string_diff.output)
+        self.assertEqual('this is the old string<>', string_diff.output)
 
     def test_string_newline(self):
         string_diff = diff.StringDiffer('this is \nthe old string',
@@ -106,6 +106,24 @@ class StringAcceptanceTestCase(unittest.TestCase):
     def test_string_long_diff(self):
         string_diff = diff.StringDiffer('this is the old string',
                                         'this is abcdefg old string')
+
+        self.assertEqual('this is <the> old string', string_diff.output)
+
+    def test_string_long_diff(self):
+        string_diff = diff.StringDiffer('this is the old string',
+                                        'this is abcdfg old string')
+
+        self.assertEqual('this is <the> old string', string_diff.output)
+
+    def test_string_long_diff(self):
+        string_diff = diff.StringDiffer('this is the old string',
+                                        'this is abcdefg old string')
+
+        self.assertEqual('this is <th>e<> old string', string_diff.output)
+
+    def test_string_word_diff(self):
+        string_diff = diff.StringDiffer('this is the old string',
+                                        'this is abcd-fg old string')
 
         self.assertEqual('this is <the> old string', string_diff.output)
 
